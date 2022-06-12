@@ -17,7 +17,7 @@ use aquatic_udp_protocol::*;
 use crate::common::*;
 use crate::config::Config;
 
-use storage::{TorrentMap, TorrentMaps};
+pub use storage::{Peer, TorrentMap, TorrentMaps};
 
 pub fn run_swarm_worker(
     _sentinel: PanicSentinel,
@@ -128,7 +128,7 @@ pub fn run_swarm_worker(
     }
 }
 
-fn handle_announce_request<I: Ip>(
+pub fn handle_announce_request<I: Ip>(
     config: &Config,
     rng: &mut SmallRng,
     torrents: &mut TorrentMap<I>,
@@ -172,7 +172,7 @@ fn handle_announce_request<I: Ip>(
     }
 }
 
-fn handle_scrape_request<I: Ip>(
+pub fn handle_scrape_request<I: Ip>(
     torrents: &mut TorrentMap<I>,
     request: PendingScrapeRequest,
 ) -> PendingScrapeResponse {

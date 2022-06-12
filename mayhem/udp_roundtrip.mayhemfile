@@ -1,0 +1,7 @@
+project: aquatic
+target: udp-roundtrip
+
+cmds:
+  - cmd: /udp_roundtrip
+  - cmd: /udp_roundtrip_no_inst @@
+    libfuzzer: false

@@ -3,6 +3,9 @@ pub mod validator;
 
 use std::io::{Cursor, ErrorKind};
 use std::sync::atomic::Ordering;
+#[cfg(fuzzing)]
+pub use storage::tests::test_pending_scrape_response_slab;
+
 use std::time::{Duration, Instant};
 
 use anyhow::Context;
