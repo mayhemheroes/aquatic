@@ -1,0 +1,26 @@
+[package]
+name = "aquatic_udp_protocol-fuzz"
+version = "0.0.0"
+authors = ["Automatically generated"]
+publish = false
+edition = "2018"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.aquatic_udp_protocol]
+path = ".."
+features = ["arbitrary"]
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "udp_roundtrip"
+path = "fuzz_targets/udp_roundtrip.rs"
+test = false
+doc = false

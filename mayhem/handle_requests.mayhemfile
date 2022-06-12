@@ -1,0 +1,7 @@
+project: aquatic
+target: handle-requests
+
+cmds:
+  - cmd: /handle_requests
+  - cmd: /handle_requests_no_inst @@
+    libfuzzer: false
