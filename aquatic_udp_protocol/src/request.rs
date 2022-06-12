@@ -10,6 +10,7 @@ use super::common::*;
 const PROTOCOL_IDENTIFIER: i64 = 4_497_486_125_440;
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum AnnounceEvent {
     Started,
     Stopped,
@@ -40,11 +41,13 @@ impl AnnounceEvent {
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct ConnectRequest {
     pub transaction_id: TransactionId,
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct AnnounceRequest {
     pub connection_id: ConnectionId,
     pub transaction_id: TransactionId,
@@ -61,6 +64,7 @@ pub struct AnnounceRequest {
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct ScrapeRequest {
     pub connection_id: ConnectionId,
     pub transaction_id: TransactionId,
@@ -107,6 +111,7 @@ impl RequestParseError {
 }
 
 #[derive(PartialEq, Eq, Clone, Debug)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum Request {
     Connect(ConnectRequest),
     Announce(AnnounceRequest),
