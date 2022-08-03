@@ -1,0 +1,7 @@
+project: aquatic
+target: pending-scrape-response-slab
+
+cmds:
+  - cmd: /pending_scrape_response_slab
+  - cmd: /pending_scrape_response_slab_no_inst @@
+    libfuzzer: false
