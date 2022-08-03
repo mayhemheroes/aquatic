@@ -1,0 +1,36 @@
+[package]
+name = "aquatic_udp-fuzz"
+version = "0.0.0"
+authors = ["Automatically generated"]
+publish = false
+edition = "2018"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+rand = { version = "0.8", features = ["small_rng"] }
+
+[dependencies.aquatic_udp]
+path = ".."
+features = ["arbitrary", "quickcheck"]
+
+[dependencies.aquatic_common]
+path = "../../aquatic_common"
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "pending_scrape_response_slab"
+path = "fuzz_targets/pending_scrape_response_slab.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "handle_requests"
+path = "fuzz_targets/handle_requests.rs"
+test = false
+doc = false

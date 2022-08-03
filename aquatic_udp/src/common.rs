@@ -15,6 +15,7 @@ use crate::config::Config;
 pub const BUFFER_SIZE: usize = 8192;
 
 #[derive(Debug)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct PendingScrapeRequest {
     pub slab_key: usize,
     pub info_hashes: BTreeMap<usize, InfoHash>,
@@ -27,6 +28,7 @@ pub struct PendingScrapeResponse {
 }
 
 #[derive(Debug)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub enum ConnectedRequest {
     Announce(AnnounceRequest),
     Scrape(PendingScrapeRequest),
@@ -40,6 +42,7 @@ pub enum ConnectedResponse {
 }
 
 #[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 pub struct SocketWorkerIndex(pub usize);
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]

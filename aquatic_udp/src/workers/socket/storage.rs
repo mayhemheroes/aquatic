@@ -118,15 +118,15 @@ impl PendingScrapeResponseSlab {
     }
 }
 
-#[cfg(test)]
-mod tests {
+#[cfg(any(test, fuzzing))]
+pub mod tests {
     use quickcheck::TestResult;
-    use quickcheck_macros::quickcheck;
+    //use quickcheck_macros::quickcheck;
 
     use super::*;
 
-    #[quickcheck]
-    fn test_pending_scrape_response_slab(
+    #[cfg_attr(test, quickcheck_macros::quickcheck)]
+    pub fn test_pending_scrape_response_slab(
         request_data: Vec<(i32, i64, u8)>,
         swarm_workers: u8,
     ) -> TestResult {

@@ -18,6 +18,7 @@ name = "aquatic_udp"
 
 [features]
 cpu-pinning = ["aquatic_common/hwloc"]
+arbitrary = ["arbitrary/derive", "aquatic_udp_protocol/arbitrary", "aquatic_common/arbitrary"]
 
 [dependencies]
 aquatic_common = { version = "0.2.0", path = "../aquatic_common" }
@@ -44,6 +45,8 @@ slab = "0.4"
 socket2 = { version = "0.4", features = ["all"] }
 time = { version = "0.3", features = ["formatting"] }
 tinytemplate = "1"
+quickcheck = { version = "1", optional = true }
+arbitrary = { version = "1", optional = true }
 
 [dev-dependencies]
 quickcheck = "1"

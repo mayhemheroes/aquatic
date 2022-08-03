@@ -182,3 +182,17 @@ impl CanonicalSocketAddr {
         self.0.is_ipv4()
     }
 }
+
+#[cfg(feature = "arbitrary")]
+impl<'a> arbitrary::Arbitrary<'a> for CanonicalSocketAddr {
+    fn arbitrary(u: &mut arbitrary::Unstructured) -> Result<Self, arbitrary::Error> {
+        let port = u.arbitrary()?;
+        let socket = if u.arbitrary()? {
+            SocketAddr::V4(SocketAddrV4::new(u.arbitrary()?, port))
+        } else {
+            SocketAddr::V6(SocketAddrV6::new(u.arbitrary()?, port, 0, 0))
+        };
+
+        Ok(Self(socket))
+    }
+}
