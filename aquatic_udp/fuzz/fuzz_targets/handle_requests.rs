@@ -1,7 +1,7 @@
 #![no_main]
 use libfuzzer_sys::fuzz_target;
 
-use aquatic_common::{CanonicalSocketAddr, ValidUntil};
+use aquatic_common::{CanonicalSocketAddr, ServerStartInstant, ValidUntil};
 use aquatic_udp::common::*;
 use aquatic_udp::config::Config;
 use aquatic_udp::workers::swarm::TorrentMaps;
@@ -19,7 +19,8 @@ fuzz_target!(|data: (Vec<(ConnectedRequest, CanonicalSocketAddr)>, u8)| {
     let mut torrents = TorrentMaps::default();
     let mut rng = SmallRng::from_seed([data.1; 32]);
 
-    let peer_valid_until = ValidUntil::new(config.cleaning.max_peer_age);
+    let start = ServerStartInstant::new();
+    let peer_valid_until = ValidUntil::new(start, config.cleaning.max_peer_age);
 
     for (request, src) in data.0 {
         let _response = match (request, src.get().ip()) {

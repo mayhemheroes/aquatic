@@ -117,6 +117,7 @@ impl PendingScrapeResponseSlab {
 
 #[cfg(any(test, fuzzing))]
 pub mod tests {
+    use aquatic_common::ServerStartInstant;
     use quickcheck::TestResult;
     //use quickcheck_macros::quickcheck;
 
