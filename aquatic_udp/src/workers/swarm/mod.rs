@@ -17,7 +17,7 @@ use aquatic_udp_protocol::*;
 use crate::common::*;
 use crate::config::Config;
 
-pub use storage::{Peer, TorrentMap, TorrentMaps};
+pub use storage::{TorrentMap, TorrentMaps};
 
 pub fn run_swarm_worker(
     _sentinel: PanicSentinel,
