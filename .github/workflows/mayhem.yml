@@ -56,9 +56,8 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Start analysis for ${{ matrix.mayhemfile }}
-      uses: ForAllSecure/mcode-action@long-runs
+      uses: forallsecure/mcode-action@long-runs
       with:
         mayhem-token: ${{ secrets.MAYHEM_TOKEN }}
         args: --image ${{ needs.build.outputs.image }} --file ${{ 
           matrix.mayhemfile }} --duration 300
-        sarif-output: sarif
