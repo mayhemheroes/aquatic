@@ -1,0 +1,48 @@
+# Additive cargo-fuzz crate for the Mayhem two-branch model.
+#
+# Kept SEPARATE from upstream — current greatest-ape/aquatic ships NO fuzz/ directory at all
+# (the pre-refactor fork's aquatic_udp_protocol/fuzz and aquatic_udp/fuzz were removed when the
+# repo was restructured into crates/). This crate reconstructs the two surviving fuzz targets
+# (udp_roundtrip, handle_requests) against current upstream's real library code, using the modern
+# libfuzzer-sys 0.4 that cargo-fuzz 0.12 expects. Built via
+# `cargo fuzz build --fuzz-dir mayhem/fuzz` (see mayhem/build.sh). The third old target,
+# pending_scrape_response_slab, drove aquatic_udp::workers::socket::test_pending_scrape_response_slab
+# which no longer exists upstream, so it is intentionally dropped.
+[package]
+name = "aquatic-mayhem-fuzz"
+version = "0.0.0"
+authors = ["Mayhem integration"]
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+# Isolated sub-workspace so cargo-fuzz builds it independently of the aquatic root workspace.
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "udp_roundtrip"
+path = "fuzz_targets/udp_roundtrip.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "handle_requests"
+path = "fuzz_targets/handle_requests.rs"
+test = false
+doc = false
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+# This crate lives at mayhem/fuzz/, so the aquatic crates are two levels up under crates/.
+# default-features = false on aquatic_udp drops the mimalloc allocator (needs cmake + a C
+# compiler) and the prometheus metrics stack — neither is relevant to the fuzzed request path.
+aquatic_udp_protocol = { path = "../../crates/udp_protocol" }
+aquatic_udp = { path = "../../crates/udp", default-features = false }
+aquatic_common = { path = "../../crates/common" }
+
+crossbeam-channel = "0.5"
+rand = "0.10"

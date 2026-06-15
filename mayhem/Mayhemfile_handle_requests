@@ -1,0 +1,10 @@
+# Mayhem target: aquatic_udp swarm request handlers
+# (aquatic_udp::swarm::TorrentMaps::{announce, scrape}, fed by aquatic_udp_protocol::Request::parse_bytes).
+# Built by mayhem/build.sh as a libFuzzer binary (cargo-fuzz) at /mayhem/handle_requests.
+project: aquatic
+target: handle-requests
+testsuite:
+  - file:///mayhem/mayhem/testsuite/handle_requests
+cmds:
+  - cmd: /mayhem/handle_requests
+    libfuzzer: true

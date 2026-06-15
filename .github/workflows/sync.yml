@@ -1,0 +1,103 @@
+# Weekly sync. If upstream MOVED: reset the mirror branch to upstream, rebase the mayhem layer,
+# build-verify, push, and (only then) run Mayhem on the new commit image. If it did NOT move: nothing.
+# Set UPSTREAM below. (The mirror branch tracks upstream; the mayhem branch holds our additive edits.)
+name: Sync with upstream
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'        # Mondays 06:00 UTC
+  workflow_dispatch:           # manual / external trigger (also how a backup orchestrator pokes it)
+
+permissions:
+  contents: write              # push the mirror + mayhem
+  packages: write              # the called Mayhem worker pushes the commit image to ghcr
+  issues: write                # flag a rebase conflict / build break
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.detect.outputs.changed }}
+      ref: ${{ steps.push.outputs.ref }}
+    env:
+      UPSTREAM: https://github.com/greatest-ape/aquatic.git   # EDIT per repo
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch upstream
+        run: |
+          git config user.name  "mayhem-sync"
+          git config user.email "mayhem-sync@users.noreply.github.com"
+          git remote add upstream "$UPSTREAM" 2>/dev/null || git remote set-url upstream "$UPSTREAM"
+          git fetch --prune upstream
+          git fetch --prune origin
+
+      - name: Detect upstream movement
+        id: detect
+        run: |
+          # mirror branch is named after upstream's default (master/main) so "Sync fork" works
+          DEF="$(git remote show upstream | sed -n 's/.*HEAD branch: //p')"
+          echo "DEF=$DEF" >> "$GITHUB_ENV"
+          if [ "$(git rev-list --count "origin/$DEF..upstream/$DEF")" -gt 0 ]; then
+            echo "changed=true"  >> "$GITHUB_OUTPUT"; echo ">> upstream moved — syncing + fuzzing"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"; echo ">> upstream unchanged — nothing to do"
+          fi
+
+      - name: Mirror upstream onto the mirror branch
+        if: steps.detect.outputs.changed == 'true'
+        run: |
+          # The mirror holds nothing of ours — reset, don't merge: upstream may rewrite history.
+          git checkout -B "$DEF" "upstream/$DEF"
+          git push --force origin "$DEF"
+
+      - name: Rebase mayhem onto the mirror
+        id: rebase
+        if: steps.detect.outputs.changed == 'true'
+        run: |
+          git checkout -B mayhem origin/mayhem
+          if git rebase "$DEF"; then echo "ok=1" >> "$GITHUB_OUTPUT"
+          else git rebase --abort; echo "ok=0" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Flag conflict (needs manual fixup) and stop
+        # NB: guard on changed=='true' — a skipped rebase makes `ok` empty, and GitHub coerces
+        # '' == '0' to 0 == 0 (true), which would fire this spuriously on no-change weeks.
+        if: steps.detect.outputs.changed == 'true' && steps.rebase.outputs.ok == '0'
+        run: |
+          gh issue create --title "mayhem rebase conflict $(date -u +%F)" \
+            --body "Weekly sync could not rebase \`mayhem\` onto upstream. Resolve by hand." || true
+          exit 1
+
+      - name: Build-verify the rebased mayhem branch
+        id: build
+        if: steps.rebase.outputs.ok == '1'
+        run: docker build -f mayhem/Dockerfile -t mayhem-verify .   # a clean rebase can still break the build
+
+      - name: Flag build break (upstream change broke the harness) and stop
+        if: steps.detect.outputs.changed == 'true' && failure() && steps.build.outcome == 'failure'
+        run: |
+          gh issue create --title "mayhem build broke after upstream sync $(date -u +%F)" \
+            --body "\`mayhem\` rebased cleanly but \`docker build -f mayhem/Dockerfile\` failed — upstream likely changed the harnessed API/build. Fix mayhem/build.sh or the harness, then re-run. (mayhem was NOT pushed, so the last good image stands.)" || true
+
+      - name: Push the rebased mayhem
+        id: push
+        if: steps.rebase.outputs.ok == '1' && steps.build.outcome == 'success'
+        run: |
+          git push --force-with-lease origin mayhem
+          echo "ref=$(git rev-parse mayhem)" >> "$GITHUB_OUTPUT"
+
+  # Runs ONLY when upstream moved AND mayhem rebased+built — then build the commit image + fuzz (20 min).
+  # Calls the worker as a reusable workflow (no PAT, no GITHUB_TOKEN trigger problem).
+  fuzz:
+    needs: sync
+    if: needs.sync.outputs.changed == 'true' && needs.sync.outputs.ref != ''
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/mayhem.yml
+    with:
+      ref: ${{ needs.sync.outputs.ref }}
+    secrets: inherit

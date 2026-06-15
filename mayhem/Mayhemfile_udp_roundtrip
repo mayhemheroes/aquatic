@@ -1,0 +1,10 @@
+# Mayhem target: aquatic_udp_protocol UDP request parser/serializer round-trip
+# (aquatic_udp_protocol::Request::{parse_bytes, write_bytes}).
+# Built by mayhem/build.sh as a libFuzzer binary (cargo-fuzz) at /mayhem/udp_roundtrip.
+project: aquatic
+target: udp-roundtrip
+testsuite:
+  - file:///mayhem/mayhem/testsuite/udp_roundtrip
+cmds:
+  - cmd: /mayhem/udp_roundtrip
+    libfuzzer: true
